@@ -4,6 +4,7 @@ import com.buyzone.user_service.dto.request.UserRequestDto;
 import com.buyzone.user_service.dto.response.GenericResponseDto;
 import com.buyzone.user_service.dto.response.UserResponseDto;
 import com.buyzone.user_service.entity.User;
+import com.buyzone.user_service.exception.UserNotFoundException;
 import com.buyzone.user_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto getUser(Long id) {
-        User user = userRepository.findById(id).orElse(null);
+        User user = userRepository.findById(id).orElseThrow(()->new UserNotFoundException("User of id: "+id+" doesn't exist"));
         return mapUserToUserResponseDto(user);
     }
 
@@ -43,7 +44,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
-        User user = userRepository.findById(id).orElse(null);
+        User user = userRepository.findById(id).orElseThrow(()->new UserNotFoundException("User of id: "+id+" doesn't exist"));;
         mapUserRequestDtoToUser(userRequestDto,user);
         userRepository.save(user);
         return mapUserToUserResponseDto(user);
