@@ -40,7 +40,7 @@ public class UserController {
     }
 
     @DeleteMapping("/deleteUser/{id}")
-    public ResponseEntity<GenericResponseDto> deleteUser(@PathVariable Long id){
+    public ResponseEntity<GenericResponseDto> deleteUser(@PathVariable(required = true) Long id){
         return new ResponseEntity<>(userService.removeUser(id),HttpStatusCode.valueOf(200));
     }
 }
