@@ -1,8 +1,11 @@
 package com.buyzone.user_service.dto.request;
 
 import com.buyzone.user_service.enums.Gender;
+import com.buyzone.user_service.enums.Role;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+
+import java.util.Set;
 
 @Data
 public class UserRequestDto {
@@ -25,4 +28,6 @@ public class UserRequestDto {
 
     @NotNull(message = "Gender is required")
     private Gender gender;
+
+    private Set<Role> role;
 }

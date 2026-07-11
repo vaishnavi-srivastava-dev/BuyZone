@@ -7,6 +7,7 @@ import com.buyzone.user_service.entity.User;
 import com.buyzone.user_service.exception.UserNotFoundException;
 import com.buyzone.user_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
@@ -15,6 +16,8 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements UserService {
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
     @Autowired
     UserRepository userRepository ;
     @Override
@@ -75,9 +78,10 @@ public class UserServiceImpl implements UserService {
         user.setName(userRequestDto.getName());
         user.setEmail(userRequestDto.getEmail());
         user.setAddress(userRequestDto.getAddress());
-        user.setPassword(userRequestDto.getPassword());
+        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         user.setPhone(userRequestDto.getPhone());
         user.setGender(userRequestDto.getGender());
+        user.setRole(userRequestDto.getRole());
 
         return user;
     }
@@ -91,6 +95,7 @@ public class UserServiceImpl implements UserService {
         userResponseDto.setPhone(user.getPhone());
         userResponseDto.setEmail(user.getEmail());
         userResponseDto.setGender(user.getGender());
+        userResponseDto.setRole(user.getRole());
 
         return userResponseDto;
     }
