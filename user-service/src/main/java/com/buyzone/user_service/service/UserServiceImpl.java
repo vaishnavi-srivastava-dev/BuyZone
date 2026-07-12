@@ -7,11 +7,15 @@ import com.buyzone.user_service.entity.User;
 import com.buyzone.user_service.exception.UserNotFoundException;
 import com.buyzone.user_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -45,12 +49,37 @@ public class UserServiceImpl implements UserService {
         return userResponseDtoList;
     }
 
+//    @Override
+//    public UserResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
+//        User user = userRepository.findById(id).orElseThrow(()->new UserNotFoundException("User of id: "+id+" doesn't exist"));
+//        mapUserRequestDtoToUser(userRequestDto,user);
+//        userRepository.save(user);
+//        return mapUserToUserResponseDto(user);
+//    }
+
     @Override
     public UserResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
-        User user = userRepository.findById(id).orElseThrow(()->new UserNotFoundException("User of id: "+id+" doesn't exist"));
-        mapUserRequestDtoToUser(userRequestDto,user);
-        userRepository.save(user);
-        return mapUserToUserResponseDto(user);
+
+        User loggedInUser = getLoggedInUser();
+
+        // Check whether the logged-in user owns this profile
+        if (!loggedInUser.getId().equals(id)) {
+            throw new AccessDeniedException(
+                    "You can only update your own details."
+            );
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User of id: " + id + " doesn't exist"
+                        ));
+
+        mapUserRequestDtoToUser(userRequestDto, user);
+
+        User updatedUser = userRepository.save(user);
+
+        return mapUserToUserResponseDto(updatedUser);
     }
 
     @Override
@@ -98,5 +127,23 @@ public class UserServiceImpl implements UserService {
         userResponseDto.setRole(user.getRole());
 
         return userResponseDto;
+    }
+
+    private User getLoggedInUser() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName(); // email or phone
+
+        Optional<User> user = userRepository.findByEmail(username);
+
+        if (user.isPresent()) {
+            return user.get();
+        }
+
+        return userRepository.findByPhone(username)
+                .orElseThrow(() ->
+                        new UserNotFoundException("Logged-in user not found"));
     }
 }
