@@ -8,6 +8,9 @@ import com.buyzone.user_service.entity.User;
 import com.buyzone.user_service.exception.UserNotFoundException;
 import com.buyzone.user_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -36,6 +39,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CachePut(value="user",key="#userRequestDto.id")
     public UserResponseDto registerUser(UserRequestDto userRequestDto) {
         User user = new User();
         mapUserRequestDtoToUser(userRequestDto,user);
@@ -52,12 +56,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value="user",key="#id")
     public UserResponseDto getUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(()->new UserNotFoundException("User of id: "+id+" doesn't exist"));
         return mapUserToUserResponseDto(user);
     }
 
     @Override
+    @Cacheable(value="users")
     public List<UserResponseDto> getAllUsers() {
         List<User> userList = userRepository.findAll();
         List<UserResponseDto> userResponseDtoList = new LinkedList<>();
@@ -77,6 +83,7 @@ public class UserServiceImpl implements UserService {
 //    }
 
     @Override
+    @CachePut(value = "users", key = "#id")
     public UserResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
 
         User loggedInUser = getLoggedInUser();
@@ -102,6 +109,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#id")
     public GenericResponseDto removeUser(Long id) {
         User user = userRepository.findById(id).orElse(null);
         GenericResponseDto genericResponseDto = new GenericResponseDto();

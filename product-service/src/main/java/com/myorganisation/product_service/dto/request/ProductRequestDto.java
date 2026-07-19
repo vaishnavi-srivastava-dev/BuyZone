@@ -2,6 +2,8 @@ package com.myorganisation.product_service.dto.request;
 
 import com.myorganisation.product_service.enums.Category;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.Set;
@@ -9,12 +11,12 @@ import java.util.Set;
 @Data
 public class ProductRequestDto {
 
-    @NotBlank
+    @NotBlank(message="Name of the product is required")
     private String name;
-    @NotBlank
+    @NotBlank(message="Brand name is required")
     private String brand;
-    @NotBlank
+    @NotNull(message="Price is required")
     private Double price;
-    @NotBlank
+    @NotEmpty(message="category is required")
     private Set<Category> categories;
 }

@@ -7,6 +7,9 @@ import com.myorganisation.product_service.entity.Product;
 import com.myorganisation.product_service.exception.ProductNotFoundException;
 import com.myorganisation.product_service.repository.ProductRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
@@ -18,6 +21,7 @@ public class ProductServiceImpl implements ProductService{
     private ProductRepo productRepo;
 
     @Override
+    @CachePut(value = "product", key="#productRequestDto.id")
     public ProductResponseDto addProduct(ProductRequestDto productRequestDto) {
         Product product = new Product();
         mapProductRequestDtoToProduct(productRequestDto,product);
@@ -26,12 +30,15 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    @Cacheable(value = "product",key = "#id")
     public ProductResponseDto getProduct(Long id) {
+        System.out.println("DB CALL HAPPENED");
         Product product = productRepo.findById(id).orElseThrow(()->new ProductNotFoundException("Product of ID:- "+id+"does not exist."));
         return mapProductToProductResponseDto(product);
     }
 
     @Override
+    @Cacheable(value = "products")
     public List<ProductResponseDto> getAllProducts() {
         List<Product> productList = productRepo.findAll();
         List<ProductResponseDto> productResponseDtoList = new LinkedList<>();
@@ -43,6 +50,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    @CachePut(value = "product updated", key = "#id")
     public ProductResponseDto updateProduct(Long id, ProductRequestDto productRequestDto) {
         Product product = productRepo.findById(id)
                 .orElseThrow(() ->
@@ -57,6 +65,7 @@ public class ProductServiceImpl implements ProductService{
         return mapProductToProductResponseDto(updatedProduct);    }
 
     @Override
+    @CacheEvict(value = "product", key = "#id")
     public GenericResponseDto removeProduct(Long id) {
         Product product = productRepo.findById(id).orElse(null);
         GenericResponseDto genericResponseDto = new GenericResponseDto();
