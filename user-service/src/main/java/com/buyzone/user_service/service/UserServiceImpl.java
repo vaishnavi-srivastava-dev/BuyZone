@@ -1,5 +1,6 @@
 package com.buyzone.user_service.service;
 
+import com.buyzone.user_service.dto.event.UserCreatedEvent;
 import com.buyzone.user_service.dto.request.UserRequestDto;
 import com.buyzone.user_service.dto.response.GenericResponseDto;
 import com.buyzone.user_service.dto.response.UserResponseDto;
@@ -7,6 +8,7 @@ import com.buyzone.user_service.entity.User;
 import com.buyzone.user_service.exception.UserNotFoundException;
 import com.buyzone.user_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,11 +26,28 @@ public class UserServiceImpl implements UserService {
     PasswordEncoder passwordEncoder;
     @Autowired
     UserRepository userRepository ;
+
+    private final KafkaTemplate<String, UserCreatedEvent> kafkaTemplate;
+
+    public UserServiceImpl(UserRepository repository,
+                           KafkaTemplate<String, UserCreatedEvent> kafkaTemplate) {
+        userRepository = repository;
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
     @Override
     public UserResponseDto registerUser(UserRequestDto userRequestDto) {
         User user = new User();
         mapUserRequestDtoToUser(userRequestDto,user);
         User storedUser = userRepository.save(user);
+        //kafka
+        UserCreatedEvent event = new UserCreatedEvent(
+                storedUser.getId(),
+                storedUser.getName(),
+                storedUser.getEmail()
+        );
+
+        kafkaTemplate.send("mail-topic",event);
         return mapUserToUserResponseDto(storedUser);
     }
 
