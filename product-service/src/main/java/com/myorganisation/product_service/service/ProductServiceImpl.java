@@ -7,10 +7,12 @@ import com.myorganisation.product_service.entity.Product;
 import com.myorganisation.product_service.exception.ProductNotFoundException;
 import com.myorganisation.product_service.repository.ProductRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
 import java.util.List;
 
+@Service
 public class ProductServiceImpl implements ProductService{
     @Autowired
     private ProductRepo productRepo;
